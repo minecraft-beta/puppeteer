@@ -3,7 +3,7 @@ const puppeteer = require('puppeteer');
 (async () => { 
     const browser = await puppeteer.launch({
         headless: true, // headless mode
-        executablePath: '/data/data/com.termux/files/usr/lib/chromium/chrome',
+        executablePath: '/opt/render/project/.render/chrome/opt/google/chrome',
         args: ['--no-sandbox'] // Optional: to avoid potential sandbox issues
     });
     console.log('Browser launched');
