@@ -2,9 +2,9 @@ const puppeteer = require('puppeteer');
 
 (async () => { 
     const browser = await puppeteer.launch({
-        headless: true, // headless mode
-        executablePath: '/opt/render/project/.render/chrome/opt/google/chrome',
-        args: ['--no-sandbox'] // Optional: to avoid potential sandbox issues
+        headless: true, // Set to true if you want to run in headless mode
+        executablePath: '/opt/render/project/.render/chrome/opt/google/chrome/google-chrome',
+        args: ['--no-sandbox']
     });
     console.log('Browser launched');
     
