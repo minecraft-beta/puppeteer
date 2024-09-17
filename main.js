@@ -1,5 +1,5 @@
 const express = require('express');
-const puppeteer = require('puppeteer');
+const puppeteer = require('/data/data/com.termux/files/home/node_modules/puppeteer-core/');
 
 const app = express();
 app.use(express.json()); // To parse JSON bodies
@@ -25,6 +25,16 @@ async function loginLive(email, password) {
     await page.click('button#idSIButton9');
     console.log('Clicked Next');
 
+    // Check for the error after clicking "Next"
+    try {
+        await page.waitForSelector('div#i0116Error', { visible: true, timeout: 5000 });
+        console.log('Incorrect email detected');
+        await page.close(); // Close the page
+        return { success: false, message: 'Incorrect email' };
+    } catch (error) {
+        console.log('Email appears to be correct, proceeding...');
+    }
+
     // Wait for the password field and enter password
     await page.waitForSelector('input[name="passwd"]', { visible: true });
     await page.type('input[name="passwd"]', password);
@@ -34,23 +44,30 @@ async function loginLive(email, password) {
     await page.click('button#idSIButton9');
     console.log('Clicked Sign in');
     
+    // Check for the error after clicking "Next"
+    try {
+        await page.waitForSelector('div#i0118Error', { visible: true, timeout: 5000 });
+        console.log('Incorrect password detected');
+        await page.close(); // Close the page
+        return { success: false, message: 'Incorrect password' };
+    } catch (error) {
+        console.log('Password appears to be correct, proceeding...');
+    }
+
     // Handle "Stay signed in?" prompt
     console.log('Waiting for "Stay signed in" button');
     await page.waitForSelector('button#declineButton', { visible: true, timeout: 10000 });
     await page.click('button#declineButton');
     console.log('Clicked Stay signed in');
 
-    // Wait for the page to fully load after login
-    await page.waitForNavigation({ waitUntil: 'networkidle2' });
-    console.log('Logged in successfully');
-    
     await page.close(); // Close the page after login
+    return { success: true };
 }
 
 async function startBrowser() {
     browser = await puppeteer.launch({
-        headless: true, // Set to true if you want to run in headless mode
-        executablePath: '/opt/render/project/.render/chrome/opt/google/chrome/google-chrome',
+        headless: true,
+        executablePath: '/data/data/com.termux/files/usr/lib/chromium/chrome',
         args: ['--no-sandbox']
     });
     console.log('Browser launched');
@@ -65,7 +82,10 @@ app.post('/login', async (req, res) => {
     }
 
     try {
-        await loginLive(email, password);
+        const loginResult = await loginLive(email, password);
+        if (!loginResult.success) {
+            return res.status(400).send(loginResult.message);
+        }
         res.status(200).send('Logged in successfully');
     } catch (error) {
         console.error('Error during login:', error);
@@ -82,8 +102,9 @@ app.post('/login', async (req, res) => {
 // Start the browser initially
 startBrowser().then(() => {
     // Start the Express server
-    const PORT = process.env.PORT || 3000;
+    const PORT = process.env.PORT || 4000;
     app.listen(PORT, () => {
         console.log(`Server is running on port ${PORT}`);
     });
 });
+
