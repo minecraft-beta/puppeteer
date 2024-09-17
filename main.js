@@ -1,8 +1,10 @@
 const express = require('express');
-const puppeteer = require('/data/data/com.termux/files/home/node_modules/puppeteer-core/');
+const puppeteer = require('puppeteer');
+const cors = require('cors'); // Import the CORS package
 
 const app = express();
 app.use(express.json()); // To parse JSON bodies
+app.use(cors()); // Enable CORS globally
 
 let browser; // Keep a reference to the browser instance
 
@@ -67,7 +69,7 @@ async function loginLive(email, password) {
 async function startBrowser() {
     browser = await puppeteer.launch({
         headless: true,
-        executablePath: '/data/data/com.termux/files/usr/lib/chromium/chrome',
+        executablePath: '/opt/render/project/.render/chrome/opt/google/chrome/google-chrome',
         args: ['--no-sandbox']
     });
     console.log('Browser launched');
@@ -107,4 +109,3 @@ startBrowser().then(() => {
         console.log(`Server is running on port ${PORT}`);
     });
 });
-
